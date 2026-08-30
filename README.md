@@ -448,9 +448,8 @@ If you use or reference this project, please cite the following foundational con
 
 ---
 
-## 19. Project Supervision & Author
+## 19. Project Author
 
-* **Project Guidance:** Dr. Devarani Devi Ningombam
 * **Author:** Shubham Patidar
 * **Affiliation:** Master of Computer Science — AI & IoT, National Institute of Technology, Patna
 
