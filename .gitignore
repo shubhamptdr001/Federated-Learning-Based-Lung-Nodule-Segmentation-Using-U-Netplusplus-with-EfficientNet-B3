@@ -1,0 +1,19 @@
+# Exclude report documents
+Report.docx
+*.docx
+
+# Python temporary files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter checkpoints and dumps
+.ipynb_checkpoints/
+dump_nb.py
+*_dump.txt
+report_text.txt
+
+# Figures or build artifacts
+figures/
+build_unified_notebook.py
