@@ -100,7 +100,8 @@ flowchart TD
 
 The project utilizes thoracic CT scans and corresponding binary lung nodule masks derived from the **LUNA16 (LIDC-IDRI)** benchmark:
 
-* **Source Dataset**: LUNA16 Segmentation Data (derived from LIDC-IDRI).
+* **Source Dataset**: [LUNA16 Segmentation Data (Hugging Face)](https://huggingface.co/datasets/H-Huang/LUNA16_segmentation_data) (derived from LIDC-IDRI).
+* **Dataset Reference**: `https://huggingface.co/datasets/H-Huang/LUNA16_segmentation_data`
 * **Modalities**:
   * **CT Images**: 2D axial grayscale CT slices stored as `.png` files in the `ct/` directory.
   * **Nodule Masks**: Ground-truth binary segmentation masks stored as `.png` files in the `mask/` directory.
@@ -434,6 +435,14 @@ If you use or reference this project, please cite the following foundational con
   number={2},
   pages={915--931},
   year={2011}
+}
+
+@misc{huang2023luna16seg,
+  title={LUNA16 Segmentation Data},
+  author={Huang, H.},
+  year={2023},
+  publisher={Hugging Face},
+  howpublished={\url{https://huggingface.co/datasets/H-Huang/LUNA16_segmentation_data}}
 }
 ```
 
