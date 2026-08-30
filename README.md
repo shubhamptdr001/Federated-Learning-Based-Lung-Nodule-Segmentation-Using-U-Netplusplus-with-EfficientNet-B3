@@ -132,24 +132,66 @@ The project utilizes thoracic CT scans and corresponding binary lung nodule mask
 
 ## 6. Model Architecture
 
-The segmentation backbone utilizes **U-Net++** with an ImageNet-pretrained **EfficientNet-B3** encoder from `segmentation-models-pytorch`.
+<p align="center">
+  <img src="architecture.png" alt="U-Net++ with EfficientNet-B3 Encoder Architecture" width="100%"/>
+  <br/>
+  <em>Figure: End-to-end architectural diagram of U-Net++ with EfficientNet-B3 encoder, illustrating the progressive MBConvBlock feature extraction hierarchy, multi-level dense nested skip pathways (X^{i,j}), 2× upsampling stages, final decoder block, and 3×3 convolutional segmentation head with Sigmoid activation.</em>
+</p>
+
+The segmentation backbone couples **U-Net++** with an ImageNet-pretrained **EfficientNet-B3** encoder from `segmentation-models-pytorch`.
+
+### 6.1 Architectural Breakdown
+
+1. **Input Stage**:
+   * Accepts single-channel 2D thoracic CT slices of dimension $1 \times 256 \times 256$.
+
+2. **EfficientNet-B3 Encoder (MBConv Hierarchy)**:
+   * Features Mobile Inverted Bottleneck Convolution blocks (MBConv) that progressively extract semantic features while downsampling spatial dimensions:
+     * **Stage 1**: $40 \times 128 \times 128$
+     * **Stage 2**: $24 \times 128 \times 128$
+     * **Stage 3**: $32 \times 64 \times 64$
+     * **Stage 4**: $48 \times 32 \times 32$
+     * **Stage 5**: $96 \times 16 \times 16$
+     * **Stage 6**: $136 \times 8 \times 8$
+     * **Stage 7**: $232 \times 8 \times 8$
+     * **Stage 8 (Bottleneck)**: $384 \times 8 \times 8$
+
+3. **U-Net++ Dense Nested Decoder Grid ($X^{i,j}$)**:
+   * Replaces rigid skip connections with a dense nested grid where nodes at each depth level receive feature maps from both the underlying upsampled node and all preceding nodes at the same semantic depth:
+     * **Level 0 (Deep Features)**: $X^{0,0}\ (256 \times 16 \times 16) \rightarrow X^{0,1}\ (128 \times 32 \times 32) \rightarrow X^{0,2}\ (64 \times 64 \times 64) \rightarrow X^{0,3}\ (32 \times 128 \times 128)$
+     * **Level 1**: $X^{1,0}\ (48 \times 32 \times 32) \rightarrow X^{1,1}\ (32 \times 64 \times 64) \rightarrow X^{1,2}\ (40 \times 128 \times 128)$
+     * **Level 2**: $X^{2,0}\ (32 \times 64 \times 64) \rightarrow X^{2,1}\ (40 \times 128 \times 128)$
+     * **Level 3 (Fine Features)**: $X^{3,0}\ (40 \times 128 \times 128)$
+   * **Dense Inter-connections**:
+     * *Green dashed lines*: Encoder-to-Decoder multi-scale skip projections.
+     * *Purple dashed lines*: $2\times$ bilinear upsampling stages.
+     * *Cyan dashed lines*: Dense intra-level skip connections concatenating multi-stage representations.
+
+4. **Final Decoder Block**:
+   * Fuses representations from $X^{3,0}$ and $X^{0,3}$ to restore original slice spatial resolution: $16 \times 256 \times 256$.
+
+5. **Segmentation Head & Output**:
+   * **Conv $3\times 3$**: Pointwise projection from $16 \times 256 \times 256 \rightarrow 1 \times 256 \times 256$.
+   * **Sigmoid Activation**: Maps logits to continuous probability values $\in [0.0, 1.0]$.
+   * **Output**: $1 \times 256 \times 256$ binary lung nodule mask.
+
+### 6.2 Structural Specifications
 
 | Component | Specification |
 | :--- | :--- |
 | **Architecture** | U-Net++ (Nested and Dense Skip Connections) |
-| **Encoder Backbone** | EfficientNet-B3 |
+| **Encoder Backbone** | EfficientNet-B3 (MBConvBlocks with Squeeze-and-Excitation) |
 | **Encoder Pretraining** | ImageNet (`encoder_weights="imagenet"`) |
-| **Input Channels** | 1 (Grayscale Thoracic CT Slice) |
-| **Output Classes** | 1 (Binary Lung Nodule Segmentation) |
-| **Input Dimension** | $1 \times 256 \times 256$ |
-| **Decoder Channels** | (256, 128, 64, 32, 16) |
-| **Skip Pathways** | Dense nested convolutional blocks bridging multi-scale levels |
-| **Activation** | Sigmoid (probability output map) |
+| **Input Shape** | $1 \times 256 \times 256$ (Grayscale Thoracic CT Slice) |
+| **Encoder Feature Stages** | $40 \rightarrow 24 \rightarrow 32 \rightarrow 48 \rightarrow 96 \rightarrow 136 \rightarrow 232 \rightarrow 384$ channels |
+| **Decoder Feature Stages** | $256 \rightarrow 128 \rightarrow 64 \rightarrow 32 \rightarrow 16$ channels |
+| **Output Shape** | $1 \times 256 \times 256$ (Binary Lung Nodule Segmentation) |
+| **Final Activation** | Sigmoid |
 | **Loss Function** | Dice-Focal Loss (combining region-based Dice loss and distribution-based Focal loss) |
 
-### Why U-Net++ with EfficientNet-B3?
-* **Nested Dense Pathways**: Standard U-Net fuses feature maps of disparate semantic scales directly via skip connections. U-Net++ introduces intermediate dense convolution blocks that gradually reconcile semantic feature levels before concatenation.
-* **EfficientNet-B3 Backbone**: Utilizes compound scaling (depth, width, and resolution) to extract high-level feature representations with fewer parameters than standard ResNet or VGG alternatives.
+### 6.3 Advantages of the Proposed Architecture
+* **Dense Nested Pathways**: In standard U-Net, encoder and decoder features are fused across large semantic semantic gaps. U-Net++ reconciles features gradually across dense convolution blocks, enabling sharper boundary capture for small, irregular lung nodules.
+* **Compound-Scaled EfficientNet-B3**: Provides a high receptive field and rich feature hierarchy with significantly lower FLOPs and parameter footprints compared to deep ResNet or DenseNet alternatives.
 
 ---
 
@@ -270,6 +312,7 @@ The table below summarizes the global optimized inference performance across the
 ```text
 Federated-Learning-Based-Lung-Nodule-Segmentation-Using-U-Netplusplus-with-EfficientNet-B3/
 ├── README.md                                  # Comprehensive research documentation
+├── architecture.png                           # End-to-end U-Net++ with EfficientNet-B3 architecture diagram
 ├── app.py                                     # Interactive Streamlit segmentation app
 ├── algorithm_comaprison.ipynb                 # Federated algorithm benchmark (FedAvg, FedProx, FedProx++)
 ├── algorithm_comparison_FEDOPT.ipynb          # FedOpt (FedAdam) server aggregation and evaluation
