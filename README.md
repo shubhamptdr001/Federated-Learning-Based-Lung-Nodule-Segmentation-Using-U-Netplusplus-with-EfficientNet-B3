@@ -363,16 +363,8 @@ The experimental outcomes demonstrate that federated U-Net++ with EfficientNet-B
 
 ---
 
-## 16. Limitations
 
-* **2D Slice-Based Formulation**: The current pipeline operates on 2D axial CT slices rather than 3D volumetric context, which may omit through-plane spatial dependencies.
-* **Simulated Non-IID Partitioning**: Data partitioning was simulated from a single cohort (LUNA16) rather than deployed across geographically distinct medical imaging centers with differing CT scanner manufacturers and acquisition protocols.
-* **Severe Class Imbalance**: Lung nodules occupy a very small fraction of the total thoracic slice volume, making boundary delineations highly sensitive to decision thresholds.
-* **Client Performance Variance**: A substantial performance gap exists between high-performing clients (Client 2 Dice $= 0.9105$) and challenging clients (Client 3 Dice $= 0.7157$).
-
----
-
-## 17. Future Work
+## 16. Future Work
 
 * **3D Volumetric Segmentation**: Extending the architecture to 3D U-Net++ to capture volumetric nodule context across consecutive CT slices.
 * **Personalized Federated Learning (pFL)**: Investigating model personalization (e.g., Per-FedAvg, federated meta-learning, or local adapter heads) to alleviate client drift on heterogeneous nodes such as Client 3.
@@ -381,7 +373,7 @@ The experimental outcomes demonstrate that federated U-Net++ with EfficientNet-B
 
 ---
 
-## 18. Citations & References
+## 17. Citations & References
 
 If you use or reference this project, please cite the following foundational contributions:
 
@@ -448,13 +440,13 @@ If you use or reference this project, please cite the following foundational con
 
 ---
 
-## 19. Project Author
+## 18. Project Author
 
 * **Author:** Shubham Patidar
 * **Affiliation:** Master of Computer Science — AI & IoT, National Institute of Technology, Patna
 
 ---
 
-## 20. License
+## 19. License
 
 License information has not yet been specified.
